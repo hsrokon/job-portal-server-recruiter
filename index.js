@@ -8,7 +8,10 @@ require('dotenv').config()
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials : true
+}));
 app.use(express.json());
 app.use(cookieParser())
 
@@ -30,6 +33,28 @@ async function run() {
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
+
+
+        //jwt || auth related api's
+        app.post('/jwt', async(req, res)=> {//post rew bcz user credentials will come
+            const user = req.body;
+
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d'});
+
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: false
+            }).send({ success: true })
+        })
+
+        app.post('/jwtClear', async(req,res)=> {
+            res.clearCookie('token', {
+                httpOnly : true,
+                secure : false
+            }).send({ success : true })
+        })
+
+
 
         // jobs related apis
         const jobsCollection = client.db('jobPortal').collection('jobs');
