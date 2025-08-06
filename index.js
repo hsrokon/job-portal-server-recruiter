@@ -15,6 +15,26 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser())
 
+//token verification middleware
+const verifyToken = (req, res, next) => {
+    const token = req.cookies?.token;
+    if (!token) {
+        return res.status(401).send({ message : 'Unauthorized access' });
+    }
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded)=> {
+        if (err) {
+            return res.status(401).send({ message : 'Unauthorized access' });
+        }
+
+        // console.log(decoded);
+        
+        req.user = decoded;
+
+        next();
+    })
+}
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nfpheel.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -40,6 +60,9 @@ async function run() {
             const user = req.body;
 
             const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d'});
+
+            // console.log('from /jwt', user, token);
+            
 
             res.cookie('token', token, {
                 httpOnly: true,
@@ -88,10 +111,18 @@ async function run() {
 
         // job application apis
         // get all data, get one data, get some data [o, 1, many]
-        app.get('/job-application', async (req, res) => {
+        app.get('/job-application', verifyToken, async (req, res) => {
             const email = req.query.email;
             const query = { applicant_email: email }
             const result = await jobApplicationCollection.find(query).toArray();
+
+            console.log(req.user.email, req.query.email);
+            
+
+            if (req.query.email !== req.user.email) { //query email !== token email 
+                return res.status(403).send({ message : 'Forbidden' });
+            }
+
 
             // fokira way to aggregate data
             for (const application of result) {
