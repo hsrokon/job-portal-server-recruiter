@@ -4,12 +4,15 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const cookieParser = require('cookie-parser');
 require('dotenv').config()
+const bodyParser = require('body-parser');
+
 
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
+app.use(bodyParser.json());
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: ['http://localhost:5173', 'https://job-portal-server-for-recruiter-par-snowy.vercel.app'],
     credentials : true
 }));
 app.use(express.json());
@@ -66,8 +69,10 @@ async function run() {
 
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: process.env.NODE_ENV === "production",
+                secure: true,
                 sameSite : 'none'
+                // process.env.NODE_ENV === "production"
+                // sameSite : 'none'
             }).send({ success: true })
         })
 
