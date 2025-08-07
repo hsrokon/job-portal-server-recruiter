@@ -49,10 +49,10 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
 
 
         //jwt || auth related api's
@@ -66,7 +66,8 @@ async function run() {
 
             res.cookie('token', token, {
                 httpOnly: true,
-                secure: false
+                secure: process.env.NODE_ENV === "production",
+                sameSite : 'none'
             }).send({ success: true })
         })
 
@@ -116,7 +117,7 @@ async function run() {
             const query = { applicant_email: email }
             const result = await jobApplicationCollection.find(query).toArray();
 
-            console.log(req.user.email, req.query.email);
+            // console.log(req.user.email, req.query.email);
             
 
             if (req.query.email !== req.user.email) { //query email !== token email 
