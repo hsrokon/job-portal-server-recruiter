@@ -79,7 +79,8 @@ async function run() {
         app.post('/jwtClear', async(req,res)=> {
             res.clearCookie('token', {
                 httpOnly : true,
-                secure : false
+                secure : true,
+                sameSite : 'none'
             }).send({ success : true })
         })
 
